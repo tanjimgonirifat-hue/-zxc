@@ -11,13 +11,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 # --- ⚙️ কনফিগারেশন (Configuration) ---
 TOKEN = '8783194900:AAH__MsqIgqwKn_-Pzg2NdxQsIJ1OjvAVY8' 
-# আপনার দেওয়া নতুন URL এখানে আপডেট করা হয়েছে
+# আপনার দেওয়া সর্বশেষ গুগল শিট ইউআরএল
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyh2OByGYKgxECFNv4EV1GYNkVxUnzmOSHzawtPXtJuv3sKhp5THIJRz0wS0OOkRE-oig/exec"
 ADMIN_ID = 8061525743 
 ADMIN_PASSWORD = "TanJImGonIRifAT2010FD"
 BOT_NAME = "𝐓𝐚𝐧𝐣𝐢𝐦 𝐀𝐮𝐭𝐨𝐦𝐚𝐭𝐢𝐨𝐧"
 
-# হাই-স্পিড পারফরম্যান্সের জন্য থ্রেড কনফিগারেশন
+# বটকে সুপার ফাস্ট করার জন্য থ্রেড কনফিগারেশন
 bot = telebot.TeleBot(TOKEN, threaded=True, num_threads=50)
 app = Flask(__name__)
 fake = Faker()
@@ -27,31 +27,42 @@ user_tasks = {}
 
 @app.route('/')
 def home():
-    return f"🚀 {BOT_NAME} is Live and Fast!"
+    return f"🚀 {BOT_NAME} High-Speed System is Online!"
 
-# গুগল শিটে ডাটা পাঠানোর ফাস্ট ফাংশন
+# গুগল শিটে ডাটা পাঠানোর ফাস্ট ফাংশন (ব্যাকগ্রাউন্ড প্রসেস)
 def send_to_sheet(row):
     try:
         requests.post(WEB_APP_URL, json={"row": row}, headers={"Content-Type": "application/json"}, timeout=15)
     except Exception as e:
         print(f"Sheet Error: {e}")
 
-# --- 🎨 মেইন মেনু কিবোর্ড (ছবির মতো সাজানো) ---
+# --- 🎨 স্টাইলিশ কিবোর্ড মেনু (টাচ বার বাটন) ---
 def main_menu(user_id):
     markup = telebot.types.ReplyKeyboardMarkup(row_width=3, resize_keyboard=True)
+    
+    # প্রথম সারি
     markup.row(telebot.types.KeyboardButton('🚀 𝐒𝐭𝐚𝐫𝐭 𝐖𝐨𝐫𝐤'))
+    
+    # দ্বিতীয় সারি
     markup.row(
         telebot.types.KeyboardButton('👤 𝐌𝐲 𝐏𝐫𝐨𝐟𝐢𝐥𝐞'), 
         telebot.types.KeyboardButton('💸 𝐖𝐢𝐭𝐡𝐝𝐫𝐚𝐰'), 
         telebot.types.KeyboardButton('👥 𝐌𝐲 𝐑𝐞𝐟𝐞𝐫𝐫𝐚𝐥𝐬')
     )
+    
+    # তৃতীয় সারি
     markup.row(telebot.types.KeyboardButton('🏆 𝐓𝐨𝐩 𝐖𝐨𝐫𝐤𝐞𝐫𝐬'), telebot.types.KeyboardButton('📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭'))
+    
+    # চতুর্থ সারি
     markup.row(telebot.types.KeyboardButton('🌍 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞'))
     
+    # শুধুমাত্র অ্যাডমিনের জন্য
     if user_id == ADMIN_ID:
         markup.row(telebot.types.KeyboardButton('🔐 𝐀𝐝𝐦𝐢𝐧 𝐏𝐚𝐧𝐞𝐥'))
+        
     return markup
 
+# --- 🏠 স্টার্ট কমান্ড ---
 @bot.message_handler(commands=['start'])
 def welcome(message):
     user_name = message.from_user.first_name
@@ -67,20 +78,36 @@ def welcome(message):
         "━━━━━━━━━━━━━━━━━━\n"
         "👇 **নিচের মেনু থেকে কাজ শুরু করুন:**"
     )
-    bot.send_message(
-        message.chat.id, 
-        welcome_text, 
-        reply_markup=main_menu(message.from_user.id), 
-        parse_mode="Markdown"
-    )
+    bot.send_message(message.chat.id, welcome_text, reply_markup=main_menu(message.from_user.id), parse_mode="Markdown")
 
-# --- 🔐 অ্যাডমিন প্যানেল লগইন ---
-@bot.message_handler(func=lambda message: message.text == "🔐 𝐀𝐝𝐦𝐢𝐧 𝐏𝐚ն𝐞𝐥")
-def admin_login(message):
-    if message.from_user.id != ADMIN_ID:
-        return
-    msg = bot.send_message(message.chat.id, "🔑 **অ্যাডমিন পাসওয়ার্ড দিন:**")
-    bot.register_next_step_handler(msg, verify_admin)
+# --- 🚀 টাস্ক এবং বাটন হ্যান্ডলার ---
+@bot.message_handler(func=lambda message: True)
+def handle_menu_clicks(message):
+    chat_id = message.chat.id
+    user_id = message.from_user.id
+    text = message.text
+
+    if text == "🚀 𝐒𝐭𝐚𝐫𝐭 𝐖𝐨𝐫𝐤":
+        markup = telebot.types.InlineKeyboardMarkup()
+        markup.add(telebot.types.InlineKeyboardButton("📱 𝐈𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦 + 𝟐𝐅𝐀 ⇛ $𝟎.𝟎𝟏𝟕𝟎", callback_data="task_inst"))
+        bot.send_message(chat_id, "✨ **𝐒𝐞𝐥𝐞𝐜𝐭 𝐘𝐨𝐮𝐫 𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐓𝐚𝐬𝐤:**", reply_markup=markup, parse_mode="Markdown")
+
+    elif text == "👤 𝐌𝐲 𝐏𝐫𝐨𝐟𝐢𝐥𝐞":
+        bot.send_message(chat_id, f"👤 **𝐔𝐬𝐞𝐫 𝐏𝐫𝐨𝐟𝐢𝐥𝐞**\n━━━━━━━━━━━━\n🆔 ID: `{chat_id}`\n💰 Balance: $0.0000\n📈 Status: Active", parse_mode="Markdown")
+
+    elif text == "💸 𝐖𝐢𝐭𝐡𝐝𝐫𝐚𝐰":
+        bot.send_message(chat_id, "💸 আপনার ব্যালেন্স $0.50 হলে উইথড্র অপশন চালু হবে।")
+
+    elif text == "📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭":
+        bot.send_message(chat_id, "📞 **𝐀𝐝𝐦𝐢𝐧 𝐒𝐮𝐩𝐩𝐨𝐫𝐭:** @Tanjim_Admin\nযেকোনো সমস্যায় মেসেজ দিন।")
+
+    elif text == "🏆 𝐓𝐨𝐩 𝐖𝐨𝐫𝐤𝐞𝐫𝐬":
+        top_text = "🏆 **𝐎𝐮𝐫 𝐓𝐨𝐩 𝐈𝐃 𝐒𝐮𝐛𝐦𝐢𝐭𝐭𝐞𝐫𝐬**\n━━━━━━━━━━━━━━━━━━\n🥇 User #8273... ⇛ 𝟏𝟓𝟎 𝐈𝐃𝐬\n🥈 User #9122... ⇛ 𝟏𝟐𝟓 𝐈𝐃𝐬\n━━━━━━━━━━━━━━━━━━"
+        bot.send_message(chat_id, top_text, parse_mode="Markdown")
+
+    elif text == "🔐 𝐀𝐝𝐦𝐢𝐧 𝐏𝐚𝐧𝐞𝐥" and user_id == ADMIN_ID:
+        msg = bot.send_message(chat_id, "🔑 **অ্যাডমিন পাসওয়ার্ড দিন:**")
+        bot.register_next_step_handler(msg, verify_admin)
 
 def verify_admin(message):
     if message.text == ADMIN_PASSWORD:
@@ -88,15 +115,9 @@ def verify_admin(message):
     else:
         bot.send_message(message.chat.id, "❌ ভুল পাসওয়ার্ড!")
 
-# --- 🚀 ফাস্ট টাস্ক লজিক ---
-@bot.message_handler(func=lambda message: message.text == "🚀 𝐒𝐭ারে 𝐖𝐨𝐫𝐤")
-def pick_task(message):
-    markup = telebot.types.InlineKeyboardMarkup()
-    markup.add(telebot.types.InlineKeyboardButton("📱 𝐈𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦 + 𝟐𝐅𝐀 ⇛ $𝟎.𝟎𝟏𝟕𝟎", callback_data="task_inst"))
-    bot.send_message(message.chat.id, "✨ **𝐒𝐞𝐥𝐞𝐜𝐭 𝐘𝐨𝐮𝐫 𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐓𝐚𝐬𝐤:**", reply_markup=markup, parse_mode="Markdown")
-
+# --- 📱 ইনস্ট্রাগ্রাম টাস্ক লজিক ---
 @bot.callback_query_handler(func=lambda call: call.data == "task_inst")
-def start_inst(call):
+def start_task(call):
     chat_id = call.message.chat.id
     f_name = f"{fake.first_name()} {fake.last_name()}"
     login = f"{fake.user_name()}{random.randint(10, 99)}"
@@ -104,13 +125,7 @@ def start_inst(call):
     
     user_tasks[chat_id] = {"name": f_name, "login": login, "pass": pwd, "start_time": time.time()}
     
-    bot.send_message(
-        chat_id, 
-        f"📝 **𝐍𝐞𝐰 𝐓𝐚𝐬𝐤 𝐀𝐬𝐬𝐢𝐠𝐧𝐞𝐝**\n━━━━━━━━━━━━━\n"
-        f"👤 **Name:** `{f_name}`\n📧 **Login:** `{login}`\n🔑 **Pass:** `{pwd}`\n"
-        f"━━━━━━━━━━━━━\n⏳ ৪ মিনিটের মধ্যে **2FA Key** দিন।", 
-        parse_mode="Markdown"
-    )
+    bot.send_message(chat_id, f"📝 **𝐍𝐞𝐰 𝐓𝐚𝐬𝐤**\n👤 Name: `{f_name}`\n📧 Login: `{login}`\n🔑 Pass: `{pwd}`\n\n⏳ ৪ মিনিটের মধ্যে **2FA Key** দিন।", parse_mode="Markdown")
     bot.register_next_step_handler(call.message, handle_otp)
 
 def handle_otp(message):
@@ -136,7 +151,7 @@ def handle_otp(message):
         bot.register_next_step_handler(message, handle_otp)
 
 @bot.callback_query_handler(func=lambda call: call.data == "final_submit")
-def final_submission(call):
+def final_submit(call):
     chat_id = call.message.chat.id
     data = user_tasks.get(chat_id)
     if data:
@@ -145,19 +160,7 @@ def final_submission(call):
         bot.edit_message_text("✅ **সফলভাবে জমা হয়েছে!** শিটে ডাটা সেভ হচ্ছে।", chat_id, call.message.message_id)
         user_tasks.pop(chat_id, None)
 
-# --- 🏆 অন্যান্য বাটন ---
-@bot.message_handler(func=lambda message: True)
-def handle_menu(message):
-    chat_id = message.chat.id
-    if message.text == "🏆 𝐓𝐨𝐩 𝐖𝐨𝐫𝐤𝐞𝐫𝐬":
-        bot.send_message(chat_id, "🏆 **Top submitters List:**\n1. User#82... : 150 IDs\n2. User#91... : 120 IDs")
-    elif message.text == "📞 𝐒𝐮𝐩𝐩𝐨𝐫𝐭":
-        bot.send_message(chat_id, "📞 **Admin Support:** @Tanjim_Admin")
-    elif message.text == "👤 𝐌𝐲 𝐏𝐫𝐨𝐟𝐢𝐥𝐞":
-        bot.send_message(chat_id, f"👤 **Profile:**\n🆔: `{chat_id}`\n💰: $0.0000\n📈: Active")
-    elif message.text == "💸 𝐖𝐢𝐭𝐡𝐝𝐫𝐚𝐰":
-        bot.send_message(chat_id, "💸 ব্যালেন্স পর্যাপ্ত হলে উইথড্র অপশন কাজ করবে।")
-
+# --- ওয়েব সার্ভার রানার ---
 def run_web():
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
 
