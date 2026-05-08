@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 # --- ⚙️ কনফিগারেশন (Configuration) ---
 TOKEN = '8783194900:AAH__MsqIgqwKn_-Pzg2NdxQsIJ1OjvAVY8' 
 # আপনার দেওয়া নতুন URL এখানে আপডেট করা হয়েছে
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw9jzrlG_rhPYm-jW6KgYwcRu05hREKgbNCmHoH6wCgvpnNMnIe_SRMPvVGSCpb41vRtA/exec"
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyh2OByGYKgxECFNv4EV1GYNkVxUnzmOSHzawtPXtJuv3sKhp5THIJRz0wS0OOkRE-oig/exec"
 ADMIN_ID = 8061525743 
 ADMIN_PASSWORD = "TanJImGonIRifAT2010FD"
 BOT_NAME = "𝐓𝐚𝐧𝐣𝐢𝐦 𝐀𝐮𝐭𝐨𝐦𝐚𝐭𝐢𝐨𝐧"
@@ -36,7 +36,7 @@ def send_to_sheet(row):
     except Exception as e:
         print(f"Sheet Error: {e}")
 
-# --- 🎨 মেইন মেনু কিবোর্ড (নিচের সেকশনে সাজানো) ---
+# --- 🎨 মেইন মেনু কিবোর্ড (ছবির মতো সাজানো) ---
 def main_menu(user_id):
     markup = telebot.types.ReplyKeyboardMarkup(row_width=3, resize_keyboard=True)
     markup.row(telebot.types.KeyboardButton('🚀 𝐒𝐭𝐚𝐫𝐭 𝐖𝐨𝐫𝐤'))
@@ -54,16 +54,28 @@ def main_menu(user_id):
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
+    user_name = message.from_user.first_name
+    welcome_text = (
+        f"🌟 **𝐖𝐞𝐥𝐜𝐨𝐦𝐞, {user_name}!** 🌟\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        f"👋 **{BOT_NAME}**-এ আপনাকে স্বাগতম।\n"
+        "এখানে আইডি সাবমিট করে খুব সহজেই ইনকাম করতে পারবেন।\n\n"
+        "⚡ **𝐎𝐮𝐫 𝐒𝐞𝐫𝐯𝐢𝐜𝐞𝐬:**\n"
+        "✅ **Fast Review:** ১-৫ মিনিটের মধ্যে রিপোর্ট চেক।\n"
+        "✅ **Auto OTP:** ২এফএ কী থেকে ইনস্ট্যান্ট ওটিপি।\n"
+        "✅ **Secure Payment:** সরাসরি বিকাশ বা নগদে পেমেন্ট।\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "👇 **নিচের মেনু থেকে কাজ শুরু করুন:**"
+    )
     bot.send_message(
         message.chat.id, 
-        f"🌟 **𝐖𝐞𝐥𝐜𝐨𝐦𝐞 𝐭𝐨 {BOT_NAME}** 🌟\n━━━━━━━━━━━━━━━━━━\n"
-        "আপনার নতুন সিস্টেম এখন পুরোপুরি প্রস্তুত। কাজ শুরু করতে নিচের মেনু ব্যবহার করুন।", 
+        welcome_text, 
         reply_markup=main_menu(message.from_user.id), 
         parse_mode="Markdown"
     )
 
 # --- 🔐 অ্যাডমিন প্যানেল লগইন ---
-@bot.message_handler(func=lambda message: message.text == "🔐 𝐀𝐝𝐦𝐢𝐧 𝐏𝐚𝐧𝐞𝐥")
+@bot.message_handler(func=lambda message: message.text == "🔐 𝐀𝐝𝐦𝐢𝐧 𝐏𝐚ն𝐞𝐥")
 def admin_login(message):
     if message.from_user.id != ADMIN_ID:
         return
@@ -77,7 +89,7 @@ def verify_admin(message):
         bot.send_message(message.chat.id, "❌ ভুল পাসওয়ার্ড!")
 
 # --- 🚀 ফাস্ট টাস্ক লজিক ---
-@bot.message_handler(func=lambda message: message.text == "🚀 𝐒𝐭𝐚𝐫𝐭 𝐖𝐨𝐫𝐤")
+@bot.message_handler(func=lambda message: message.text == "🚀 𝐒𝐭ারে 𝐖𝐨𝐫𝐤")
 def pick_task(message):
     markup = telebot.types.InlineKeyboardMarkup()
     markup.add(telebot.types.InlineKeyboardButton("📱 𝐈𝐧𝐬𝐭𝐚𝐠𝐫𝐚𝐦 + 𝟐𝐅𝐀 ⇛ $𝟎.𝟎𝟏𝟕𝟎", callback_data="task_inst"))
@@ -129,12 +141,11 @@ def final_submission(call):
     data = user_tasks.get(chat_id)
     if data:
         row = [time.ctime(), str(chat_id), data['name'], data['login'], data['pass'], data.get('2fa_key', 'N/A'), "Pending"]
-        # ব্যাকগ্রাউন্ডে শিটে ডাটা পাঠানো হচ্ছে
         executor.submit(send_to_sheet, row)
         bot.edit_message_text("✅ **সফলভাবে জমা হয়েছে!** শিটে ডাটা সেভ হচ্ছে।", chat_id, call.message.message_id)
         user_tasks.pop(chat_id, None)
 
-# --- 🏆 টপ ওয়ার্কার্স ও অন্যান্য ---
+# --- 🏆 অন্যান্য বাটন ---
 @bot.message_handler(func=lambda message: True)
 def handle_menu(message):
     chat_id = message.chat.id
